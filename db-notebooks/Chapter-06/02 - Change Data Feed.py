@@ -16,6 +16,11 @@
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC USE CATALOG hive_metastore;
+
+# COMMAND ----------
+
 # MAGIC %md 
 # MAGIC ###1 - Create a new table and enable the change data feed
 
@@ -53,14 +58,14 @@
 # COMMAND ----------
 
 # DBTITLE 1,View files in the new _change_data directory in the Delta table location
-# MAGIC %sh
-# MAGIC ls -al /dbfs/mnt/datalake/book/chapter06/TripAggregatesDelta/
+# MAGIC %fs
+# MAGIC ls /mnt/datalake/book/chapter06/TripAggregatesDelta/
 
 # COMMAND ----------
 
 # DBTITLE 1,View files in the _change_data directory
-# MAGIC %sh
-# MAGIC ls -al /dbfs/mnt/datalake/book/chapter06/TripAggregatesDelta/_change_data
+# MAGIC %fs
+# MAGIC ls /mnt/datalake/book/chapter06/TripAggregatesDelta/_change_data
 
 # COMMAND ----------
 
@@ -103,4 +108,8 @@ display(df)
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from taxidb.tripAggregates 
+# MAGIC SELECT * FROM taxidb.tripAggregates 
+
+# COMMAND ----------
+
+

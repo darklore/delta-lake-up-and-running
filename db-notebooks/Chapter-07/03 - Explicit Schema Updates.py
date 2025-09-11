@@ -19,6 +19,11 @@
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC USE CATALOG hive_metastore;
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC ###Step 1 - Reset the TaxiRateCode Delta Table
 
@@ -32,13 +37,12 @@ from pyspark.sql.functions import col, cast
 
 # COMMAND ----------
 
-# MAGIC %fs
-# MAGIC rm -r dbfs:/mnt/datalake/book/chapter07/TaxiRateCode.delta
+dbutils.fs.rm("dbfs:/mnt/datalake/book/chapter07/TaxiRateCode.delta", recurse=True)
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC drop table taxidb.taxiratecode
+# MAGIC DROP TABLE IF EXISTS taxidb.TaxiRateCode
 
 # COMMAND ----------
 
@@ -46,7 +50,7 @@ from pyspark.sql.functions import col, cast
 # for the RateCodeId
 df = spark.read.format("csv")      \
         .option("header", "true") \
-        .load("/mnt/datalake/book/chapter07/TaxiRateCode.csv")
+        .load("/mnt/datalake/book/chapter07/taxi_rate_code.csv")
 df = df.withColumn("RateCodeId", df["RateCodeId"].cast(IntegerType()))
 
 # Write in Delta Lake format
@@ -79,7 +83,7 @@ df.show()
 # MAGIC %sql
 # MAGIC -- Perform a SELECT, verify that we are indeed starting with our default 
 # MAGIC -- 6 records
-# MAGIC select * from taxidb.TaxiRateCode
+# MAGIC SELECT * FROM taxidb.TaxiRateCode
 
 # COMMAND ----------
 
@@ -102,18 +106,19 @@ df.show()
 
 # MAGIC %sql
 # MAGIC -- Show that the values for the new columns are NULL, as expected
-# MAGIC select * from delta.`/mnt/datalake/book/chapter07/TaxiRateCode.delta`
+# MAGIC SELECT * FROM delta.`/mnt/datalake/book/chapter07/TaxiRateCode.delta`
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC ls -al /dbfs//mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/*.json
+log_files = dbutils.fs.ls("/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/")
+for file_info in log_files:
+    if file_info.path.endswith('.json'):
+        print(file_info.path)
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC cat /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000001.json 
-# MAGIC
+# MAGIC %fs
+# MAGIC head /mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000001.json 
 
 # COMMAND ----------
 
@@ -136,14 +141,18 @@ df.show()
 
 # COMMAND ----------
 
+dbutils.fs.cp("/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000001.json", "file:/tmp/00000000000000000001.json")
+
+# COMMAND ----------
+
 # MAGIC %sh
-# MAGIC grep "commitInfo" /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000001.json > /tmp/commit.json
+# MAGIC grep "commitInfo" /tmp/00000000000000000001.json > /tmp/commit.json
 # MAGIC python -m json.tool < /tmp/commit.json
 
 # COMMAND ----------
 
 # MAGIC %sh
-# MAGIC grep "metaData" /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000001.json > /tmp/commit.json
+# MAGIC grep "metaData" /tmp/00000000000000000001.json > /tmp/commit.json
 # MAGIC python -m json.tool < /tmp/commit.json
 
 # COMMAND ----------
@@ -183,13 +192,15 @@ df.show()
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC ls -al /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/*.json
+log_files = dbutils.fs.ls("/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/")
+for file_info in log_files:
+    if file_info.path.endswith('.json'):
+        print(file_info.path)
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC cat /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000003.json
+# MAGIC %fs
+# MAGIC head /mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000003.json
 
 # COMMAND ----------
 
@@ -207,13 +218,15 @@ df.show()
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC ls -al /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/*.json
+log_files = dbutils.fs.ls("/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log")
+for file_info in log_files:
+    if file_info.path.endswith('.json'):
+        print(file_info.path)
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC cat /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000004.json
+# MAGIC %fs
+# MAGIC head /mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000004.json
 
 # COMMAND ----------
 
@@ -238,19 +251,34 @@ df.show()
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC ls -al /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/*.json
+log_files = dbutils.fs.ls("/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log")
+for file_info in log_files:
+    if file_info.path.endswith('.json'):
+        print(file_info.path)
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC # Look at the corresponding log entry
-# MAGIC cat /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000005.json
+# MAGIC %fs
+# MAGIC head /mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000005.json
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ###Step 7 - REPLACE COLUMNS (Use Case 5)
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC DESCRIBE EXTENDED taxidb.TaxiRateCode 
+
+# COMMAND ----------
+
+# MAGIC  %sql
+# MAGIC  ALTER TABLE taxidb.TaxiRateCode  SET TBLPROPERTIES (
+# MAGIC     'delta.minReaderVersion' = '2',
+# MAGIC     'delta.minWriterVersion' = '5',
+# MAGIC     'delta.columnMapping.mode' = 'name'
+# MAGIC   )
 
 # COMMAND ----------
 
@@ -264,14 +292,15 @@ df.show()
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC ls -al /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/*.json
+log_files = dbutils.fs.ls("/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/")
+for file_info in log_files:
+    if file_info.path.endswith('.json'):
+        print(file_info.path)
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC cat /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000006.json
-# MAGIC  
+# MAGIC %fs
+# MAGIC head /mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000006.json
 
 # COMMAND ----------
 
@@ -286,7 +315,7 @@ df.show()
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from taxidb.taxiratecode
+# MAGIC SELECT * FROM taxidb.taxiratecode
 
 # COMMAND ----------
 
@@ -295,13 +324,13 @@ df.show()
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC ls -al /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/
+# MAGIC %fs
+# MAGIC ls /mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC cat /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000000.json
+# MAGIC %fs
+# MAGIC head /mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000000.json
 
 # COMMAND ----------
 
@@ -322,8 +351,7 @@ df.show()
 
 # COMMAND ----------
 
-# MAGIC %fs
-# MAGIC rm -r dbfs:/mnt/datalake/book/chapter07/TaxiRateCode.delta
+dbutils.fs.rm("dbfs:/mnt/datalake/book/chapter07/TaxiRateCode.delta", recurse=True)
 
 # COMMAND ----------
 
@@ -334,7 +362,7 @@ df.show()
 
 df = spark.read.format("csv")      \
         .option("header", "true") \
-        .load("/mnt/datalake/book/chapter07/TaxiRateCode.csv")
+        .load("/mnt/datalake/book/chapter07/taxi_rate_code.csv")
 df = df.withColumn("RateCodeId", df["RateCodeId"].cast(IntegerType()))
 
 # Write in Delta Lake format
@@ -392,26 +420,26 @@ df.printSchema()
 
 # COMMAND ----------
 
+dbutils.fs.cp("/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000002.json", "file:/tmp/00000000000000000002.json")
+
+# COMMAND ----------
+
 # MAGIC %sh
 # MAGIC # When you take a look at the commitInfo, you can see the DROP COLUMNS operation
-# MAGIC # cat /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000002.json
-# MAGIC grep "commitInfo" /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000002.json > /tmp/commit.json
+# MAGIC grep "commitInfo" /tmp/00000000000000000002.json > /tmp/commit.json
 # MAGIC python -m json.tool < /tmp/commit.json
 
 # COMMAND ----------
 
 # MAGIC %sh
 # MAGIC # When you take a look at the metadata, we see the new schemaString, and the metadata mapping
-# MAGIC grep "metaData" /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000002.json > /tmp/commit.json
+# MAGIC grep "metaData" /tmp/00000000000000000002.json > /tmp/commit.json
 # MAGIC python -m json.tool < /tmp/commit.json
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC # Display the data file(s)
-# MAGIC # We can see we only have our one part file, which was not 
-# MAGIC # touched at all
-# MAGIC ls -al /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta
+# MAGIC %fs
+# MAGIC ls /mnt/datalake/book/chapter07/TaxiRateCode.delta
 
 # COMMAND ----------
 
@@ -423,23 +451,18 @@ df.printSchema()
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC # Look at the Transaction Log entry for the REORG Table Command
-# MAGIC cat /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000003.json
+# MAGIC %fs
+# MAGIC head /mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000003.json
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC # In our main directory, we have the original part file,
-# MAGIC # which now has been removed from the Delta File
-# MAGIC # We also notice the 9g sub-directory
-# MAGIC ls -al /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/
+# MAGIC %fs
+# MAGIC ls /mnt/datalake/book/chapter07/TaxiRateCode.delta/
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC # This is the new part file, which contains just the RateCodeId column
-# MAGIC ls -al /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/9g
+# MAGIC %fs
+# MAGIC ls /mnt/datalake/book/chapter07/TaxiRateCode.delta/FD
 
 # COMMAND ----------
 
@@ -460,8 +483,7 @@ df.printSchema()
 
 # COMMAND ----------
 
-# MAGIC %fs
-# MAGIC rm -r dbfs:/mnt/datalake/book/chapter07/TaxiRateCode.delta
+dbutils.fs.rm("dbfs:/mnt/datalake/book/chapter07/TaxiRateCode.delta", recurse=True)
 
 # COMMAND ----------
 
@@ -472,7 +494,7 @@ df.printSchema()
 
 df = spark.read.format("csv")      \
         .option("header", "true") \
-        .load("/mnt/datalake/book/chapter07/TaxiRateCode.csv")
+        .load("/mnt/datalake/book/chapter07/taxi_rate_code.csv")
 df = df.withColumn("RateCodeId", df["RateCodeId"].cast(IntegerType()))
 
 # Write in Delta Lake format
@@ -544,38 +566,42 @@ spark.read.table('taxidb.TaxiRateCode')                             \
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC # We should have two transaction log entries:
-# MAGIC #  1. The first one from the table creation
-# MAGIC #  2. The second one from our table re-write. This is the one that we 
-# MAGIC #     are interested in
-# MAGIC ls -al /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log
+# MAGIC %fs
+# MAGIC ls /mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log
+
+# COMMAND ----------
+
+dbutils.fs.cp("/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000001.json", "file:/tmp/00000000000000000001.json")
 
 # COMMAND ----------
 
 # MAGIC %sh
 # MAGIC # First, let's have a look at the commitInfo entry.
 # MAGIC # We see that the OPERATION is listed as CREATE OR REPLACE TABLE AS SELECT
-# MAGIC grep "commitInfo" /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000001.json > /tmp/commit.json
+# MAGIC grep "commitInfo" /tmp/00000000000000000001.json > /tmp/commit.json
 # MAGIC python -m json.tool < /tmp/commit.json
 
 # COMMAND ----------
 
 # MAGIC %sh
 # MAGIC # The metadata field contains our expected schemaString
-# MAGIC grep "metaData" /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000001.json > /tmp/commit.json
+# MAGIC grep "metaData" /tmp/00000000000000000001.json > /tmp/commit.json
 # MAGIC python -m json.tool < /tmp/commit.json
 
 # COMMAND ----------
 
 # MAGIC %sh
 # MAGIC # We have one remove entry, which removes our old part file
-# MAGIC grep "remove" /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000001.json > /tmp/commit.json
+# MAGIC grep "remove" /tmp/00000000000000000001.json > /tmp/commit.json
 # MAGIC python -m json.tool < /tmp/commit.json
 
 # COMMAND ----------
 
 # MAGIC %sh
 # MAGIC # We have one add entry, which adds our part file with our 6 records
-# MAGIC grep '"add"' /dbfs/mnt/datalake/book/chapter07/TaxiRateCode.delta/_delta_log/00000000000000000001.json > /tmp/commit.json
+# MAGIC grep '"add"' /tmp/00000000000000000001.json > /tmp/commit.json
 # MAGIC python -m json.tool < /tmp/commit.json
+
+# COMMAND ----------
+
+

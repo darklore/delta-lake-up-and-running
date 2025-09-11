@@ -21,13 +21,22 @@
 
 # COMMAND ----------
 
-# DBTITLE 1,Show file statistics
+json_files = []
+log_files = dbutils.fs.ls("/mnt/datalake/book/chapter05/YellowTaxisDelta/_delta_log/")
+for file_info in log_files:
+    if file_info.path.endswith('.json'):
+        json_files.append(file_info.path)
+
+dbutils.fs.cp(json_files[-1], f"file:/tmp/source.json")
+
+# COMMAND ----------
+
 # MAGIC %sh
-# MAGIC ## UPDATE delta_table_path WITH YOUR PATH ##
-# MAGIC # define path to delta table
-# MAGIC delta_table_path='mnt/datalake/book/chapter05/YellowTaxisDelta/'
-# MAGIC
 # MAGIC # find the last transaction entry and search for "add"
 # MAGIC # the output will show you the file stats stored in the json transaction entry for the last file added
-# MAGIC grep "\"add"\" "$(ls -1rt /dbfs/$delta_table_path/_delta_log/*.json | tail -n1)" | sed -n 1p > /tmp/commit.json
+# MAGIC grep "\"add"\" "$(ls -1rt /tmp/source.json | tail -n1)" | sed -n 1p > /tmp/commit.json
 # MAGIC python -m json.tool < /tmp/commit.json
+
+# COMMAND ----------
+
+

@@ -2,16 +2,16 @@
 # MAGIC %md-sandbox
 # MAGIC <img src= "https://cdn.oreillystatic.com/images/sitewide-headers/oreilly_logo_mark_red.svg"/>&nbsp;&nbsp;<font size="16"><b>Delta Lake: Up and Running<b></font></span>
 # MAGIC <img style="float: left; margin: 0px 15px 15px 0px;" src="https://learning.oreilly.com/covers/urn:orm:book:9781098139711/400w/" />  
-# MAGIC 
+# MAGIC
 # MAGIC  
 # MAGIC   Name:          chapter 03/00 - Chapter 3 Initialization
-# MAGIC 
+# MAGIC
 # MAGIC      Author:    Bennie Haelen
 # MAGIC      Date:      12-10-2022
 # MAGIC      Purpose:   The notebooks in this folder contains the code for chapter 3 of the book - Table Deletes, Updates and Merges
 # MAGIC                 This notebook resets all Hive databases and data files, so that we can successfully 
 # MAGIC                 execute all notebooks in this chapter in sequence
-# MAGIC 
+# MAGIC
 # MAGIC                 
 # MAGIC      The following actions are taken in this notebook:
 # MAGIC        1 - Drop the taxidb database with a cascade, deleting all tables in the database
@@ -22,6 +22,11 @@
 
 # MAGIC %md 
 # MAGIC ###1 - Drop the taxidb database and all of its tables
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC USE CATALOG hive_metastore;
 
 # COMMAND ----------
 
@@ -36,13 +41,16 @@
 
 # COMMAND ----------
 
-# MAGIC %fs
-# MAGIC rm -r /mnt/datalake/book/chapter04/YellowTaxisParquet
+dbutils.fs.rm('/mnt/datalake/book/chapter04/YellowTaxisParquet', recurse=True)
 
 # COMMAND ----------
 
 # MAGIC %fs
-# MAGIC cp mnt/datalake/book/DataFiles/YellowTaxisParquet /mnt/datalake/book/chapter04/YellowTaxisParquet
+# MAGIC ls /FileStore/tables/data/YellowTaxi
+
+# COMMAND ----------
+
+dbutils.fs.cp('/FileStore/tables/data/YellowTaxi','/mnt/datalake/book/chapter04/YellowTaxisParquet', recurse=True)
 
 # COMMAND ----------
 
@@ -51,13 +59,12 @@
 
 # COMMAND ----------
 
-# MAGIC %fs
-# MAGIC rm -r /mnt/datalake/book/chapter04/YellowTaxisDelta
+dbutils.fs.rm('/mnt/datalake/book/chapter04/YellowTaxisDelta', recurse=True)
 
 # COMMAND ----------
 
 df = spark.read.format("parquet").load("/mnt/datalake/book/chapter04/YellowTaxisParquet")
-df.write.format("delta").mode("overwrite").save("/mnt/datalake/book/chapter04/YellowTaxisDelta/")
+df.write.format("delta").mode("overwrite").save("/mnt/datalake/book/chapter04/YellowTaxisDelta")
 
 # COMMAND ----------
 
@@ -79,7 +86,7 @@ df.write.format("delta").mode("overwrite").save("/mnt/datalake/book/chapter04/Ye
 
 # MAGIC %sql
 # MAGIC -- Re-create YellowTaxis as an unmanaged table
-# MAGIC CREATE TABLE taxidb.YellowTaxis
+# MAGIC CREATE OR REPLACE TABLE taxidb.YellowTaxis
 # MAGIC (
 # MAGIC     RideId                  INT,
 # MAGIC     VendorId                INT,
@@ -100,14 +107,19 @@ df.write.format("delta").mode("overwrite").save("/mnt/datalake/book/chapter04/Ye
 # MAGIC     TipAmount               DOUBLE,
 # MAGIC     TollsAmount             DOUBLE,         
 # MAGIC     ImprovementSurcharge    DOUBLE
-# MAGIC     
-# MAGIC ) USING DELTA         
+# MAGIC ) 
+# MAGIC USING DELTA         
 # MAGIC LOCATION "/mnt/datalake/book/chapter04/YellowTaxisDelta"
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC ALTER TABLE taxidb.YellowTaxis SET TBLPROPERTIES ('delta.enableDeletionVectors' = false)
+
+# COMMAND ----------
+
 # MAGIC %md
-# MAGIC ###6 - Get the count of the table which should be exactly 9,999,995 Rows
+# MAGIC ###6 - Get the count of the table
 
 # COMMAND ----------
 
@@ -119,10 +131,26 @@ df.write.format("delta").mode("overwrite").save("/mnt/datalake/book/chapter04/Ye
 
 # COMMAND ----------
 
-# MAGIC %fs
-# MAGIC cp /mnt/datalake/book/DataFiles/YellowTaxisMergeData.csv /mnt/datalake/book/chapter04/YellowTaxisMergeData.csv
+# MAGIC %sql
+# MAGIC SELECT  
+# MAGIC     *
+# MAGIC FROM    
+# MAGIC     taxidb.YellowTaxis
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ###4 - Read the YellowTaxisMergeData.csv
+
+# COMMAND ----------
+
+dbutils.fs.cp('/FileStore/tables/data/YellowTaxisMergeData.csv','/mnt/datalake/book/chapter04/YellowTaxisMergeData.csv', recurse=True)
 
 # COMMAND ----------
 
 # MAGIC %fs
 # MAGIC ls /mnt/datalake/book/chapter04/
+
+# COMMAND ----------
+
+

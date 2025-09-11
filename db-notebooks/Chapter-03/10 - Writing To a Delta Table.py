@@ -25,26 +25,28 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###1 - Drop the YellowTaxis table and it's underlying Delta Files
+# MAGIC ###1 - YellowTaxis テーブルとその基礎となる Delta ファイルを削除します
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC -- Drop the YellowTaxis table. Since this is an unmamaged
-# MAGIC -- table, this will NOT remove the underlying files
+# MAGIC USE CATALOG hive_metastore;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC -- YellowTaxis テーブルを削除します。
+# MAGIC -- これは管理されていないテーブルなので、基になるファイルは削除されません。
 # MAGIC DROP TABLE IF EXISTS taxidb.YellowTaxis
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC # Remove the Deta Files, since they are not automatically 
-# MAGIC # dropped for a managed table
-# MAGIC rm -r "/dbfs/mnt/datalake/book/chapter03/YellowTaxisDelta/"
+dbutils.fs.rm('/mnt/datalake/book/chapter03/YellowTaxisDelta/', recurse=True)
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###2 - Rebuild the YellowTaxis table
+# MAGIC ###2 - YellowTaxisテーブルを再構築
 
 # COMMAND ----------
 
@@ -78,7 +80,7 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###3 - Insert data with a SQL statement
+# MAGIC ###3 - SQLでデータを挿入
 
 # COMMAND ----------
 
@@ -99,7 +101,7 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###4 - Performa SELECT * from the Delta Table to ensure that the data was indeed loaded
+# MAGIC ###4 - SELECT句でDeltaテーブルへデータがロードされたか確認する
 
 # COMMAND ----------
 
@@ -109,7 +111,7 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###5 - Load the schema from the Delta Table
+# MAGIC ###5 - Deltaテーブルからスキーマをロードする
 
 # COMMAND ----------
 
@@ -129,7 +131,7 @@ df.printSchema()
 df_for_append = spark.read                            \
                      .option("header", "true")        \
                      .schema(yellowTaxiSchema)        \
-                     .csv("/mnt/datalake/book/data files/YellowTaxis_append.csv")
+                     .csv("/mnt/datalake/book/chapter03/YellowTaxis_append.csv")
 
 display(df_for_append)
 
@@ -249,6 +251,9 @@ df_for_append.write                     \
 
 # COMMAND ----------
 
-# MAGIC
 # MAGIC %fs
-# MAGIC ls /mnt/datalake/book/DataFiles
+# MAGIC ls /mnt/datalake/book/chapter03/YellowTaxisDelta
+
+# COMMAND ----------
+
+

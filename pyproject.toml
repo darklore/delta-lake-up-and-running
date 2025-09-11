@@ -1,0 +1,48 @@
+[project]
+name = "delta-lake-up-and-running"
+version = "0.1.0"
+description = ""
+authors = [{ name = "darklore" }]
+dependencies = [
+  "pyspark[sql, pandas_on_spark]~=4.0",
+  "deltalake~=1.0",
+  "delta-spark~=4.0",
+]
+requires-python = "~=3.13.7"
+readme = "README.md"
+license = { text = "MIT" }
+
+[dependency-groups]
+dev = ["jupyter~=1.1", "pandas-stubs>=2.2"]
+
+[tool.mypy]
+strict = true
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 80
+indent-width = 4
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+  "D100",   # Missing docstring in public module
+  "D103",   # Missing docstring in public function
+  "D104",   # Missing docstring in public package
+  "N812",   # lowercase-imported-as-non-lowercase
+  "N816",
+  "TD002",
+  "TD003",
+  "T201",   # print
+  "INP001", # implicit namespace package
+]
+pydocstyle.convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = false
+docstring-code-line-length = "dynamic"

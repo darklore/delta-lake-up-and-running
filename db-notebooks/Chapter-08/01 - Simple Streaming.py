@@ -24,6 +24,11 @@
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC USE CATALOG hive_metastore;
+
+# COMMAND ----------
+
 from pyspark.sql.functions import current_timestamp
 
 # COMMAND ----------
@@ -33,9 +38,8 @@ from pyspark.sql.functions import current_timestamp
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC # List the files in our source Delta Table
-# MAGIC ls -al /dbfs/mnt/datalake/book/chapter08/LimitedRecords.delta
+# MAGIC %fs
+# MAGIC ls /mnt/datalake/book/chapter08/LimitedRecords.delta
 
 # COMMAND ----------
 
@@ -59,8 +63,8 @@ from pyspark.sql.functions import current_timestamp
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC ls -al /dbfs/mnt/datalake/book/chapter08
+# MAGIC %fs
+# MAGIC ls /mnt/datalake/book/chapter08
 
 # COMMAND ----------
 
@@ -145,28 +149,28 @@ streamQuery =                                                         \
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC ls -al /dbfs/mnt/datalake/book/chapter08/StreamingTarget/_checkpoint/
+# MAGIC %fs
+# MAGIC ls /mnt/datalake/book/chapter08/StreamingTarget/_checkpoint/
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC head /dbfs/mnt/datalake/book/chapter08/StreamingTarget/_checkpoint/metadata
+# MAGIC %fs
+# MAGIC head /mnt/datalake/book/chapter08/StreamingTarget/_checkpoint/metadata
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC ls -al /dbfs/mnt/datalake/book/chapter08/StreamingTarget/_checkpoint/offsets
+# MAGIC %fs
+# MAGIC ls /mnt/datalake/book/chapter08/StreamingTarget/_checkpoint/offsets
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC head /dbfs/mnt/datalake/book/chapter08/StreamingTarget/_checkpoint/offsets/0
+# MAGIC %fs
+# MAGIC head /mnt/datalake/book/chapter08/StreamingTarget/_checkpoint/offsets/0
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC head /dbfs/mnt/datalake/book/chapter08/StreamingTarget/_checkpoint/offsets/1
+# MAGIC %fs
+# MAGIC head /mnt/datalake/book/chapter08/StreamingTarget/_checkpoint/offsets/1
 
 # COMMAND ----------
 
@@ -175,23 +179,23 @@ streamQuery =                                                         \
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC ls -al /dbfs/mnt/datalake/book/chapter08/StreamingTarget/_checkpoint/commits
+# MAGIC %fs
+# MAGIC ls /mnt/datalake/book/chapter08/StreamingTarget/_checkpoint/commits
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC head /dbfs/mnt/datalake/book/chapter08/StreamingTarget/_checkpoint/commits/0
+# MAGIC %fs
+# MAGIC head /mnt/datalake/book/chapter08/StreamingTarget/_checkpoint/commits/0
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC head /dbfs/mnt/datalake/book/chapter08/StreamingTarget/_checkpoint/commits/1
+# MAGIC %fs
+# MAGIC head /mnt/datalake/book/chapter08/StreamingTarget/_checkpoint/commits/1
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC ls -al /dbfs/mnt/datalake/book/chapter08/StreamingTarget
+# MAGIC %fs
+# MAGIC ls /mnt/datalake/book/chapter08/StreamingTarget
 
 # COMMAND ----------
 
@@ -202,3 +206,7 @@ streamQuery =                                                         \
 
 # MAGIC %sql
 # MAGIC DESCRIBE delta.`/mnt/datalake/book/chapter08/StreamingTarget`
+
+# COMMAND ----------
+
+

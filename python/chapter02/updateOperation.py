@@ -1,29 +1,34 @@
-from msilib.schema import Condition
-import pyspark
+# %%
+from delta import configure_spark_with_delta_pip
+from delta.tables import DeltaTable
+from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, lit
-from delta import *
-from delta.tables import *
 
-builder = pyspark.sql.SparkSession.builder.appName("MyApp") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+builder = (
+    SparkSession.builder.appName("MyApp")
+    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+    .config(
+        "spark.sql.catalog.spark_catalog",
+        "org.apache.spark.sql.delta.catalog.DeltaCatalog",
+    )
+)
 
 spark = configure_spark_with_delta_pip(builder).getOrCreate()
 
 # Create an array with the columns of our dataframe
-columns = ['patientId', 'name']
+columns = ["patientId", "name"]
 
-DATALAKE_PATH = "/book/chapter02/UpdateOperation"
+DATALAKE_PATH = "./book/chapter02/UpdateOperation"
 # =======================================================
 # Step 1 - First write
 # =======================================================
 
 # Create the data as an array of tuples
 data = [
-    (1, 'P1'),
-    (2, 'P2'),
-    (3, 'P3'),
-    (4, 'P4')
+    (1, "P1"),
+    (2, "P2"),
+    (3, "P3"),
+    (4, "P4"),
 ]
 
 # Create a dataframe from the above array and column
@@ -31,11 +36,7 @@ data = [
 df = spark.createDataFrame(data, columns)
 
 # Write out the dataframe as a parquet file.
-df.coalesce(2)        \
-  .write              \
-  .format("delta")    \
-  .mode("overwrite")  \
-  .save(DATALAKE_PATH)
+df.coalesce(2).write.format("delta").mode("overwrite").save(DATALAKE_PATH)
 
 # =======================================================
 # Step 2 - Append more patients
@@ -43,8 +44,8 @@ df.coalesce(2)        \
 
 # Create the data as an array of tuples
 data = [
-    (5, 'P5'),
-    (6, 'P6')
+    (5, "P5"),
+    (6, "P6"),
 ]
 
 # Create a dataframe from the above array and column
@@ -57,12 +58,11 @@ df.coalesce(1).write.format("delta").mode("append").save(DATALAKE_PATH)
 # =======================================================
 # Step 3 - Update Operation
 # =======================================================
-deltaTable = DeltaTable \
- .forPath(spark, DATALAKE_PATH)
-            
+deltaTable = DeltaTable.forPath(spark, DATALAKE_PATH)
+
 deltaTable.update(
-  condition = col("patientId") == 1,
-  set = { 'name': lit("p11")}
+    condition=col("patientId") == 1,
+    set={"name": lit("p11")},
 )
 
 # =======================================================
@@ -70,3 +70,5 @@ deltaTable.update(
 # =======================================================
 df = spark.read.format("delta").load(DATALAKE_PATH)
 df.show()
+
+# %%

@@ -2,21 +2,26 @@
 # MAGIC %md-sandbox
 # MAGIC <img src= "https://cdn.oreillystatic.com/images/sitewide-headers/oreilly_logo_mark_red.svg"/>&nbsp;&nbsp;<font size="16"><b>Delta Lake: Up and Running<b></font></span>
 # MAGIC <img style="float: left; margin: 0px 15px 15px 0px;" src="https://learning.oreilly.com/covers/urn:orm:book:9781098139711/400w/" />  
-# MAGIC 
+# MAGIC
 # MAGIC  
 # MAGIC Name:          chapter 04/02 - Update Operations
-# MAGIC 
+# MAGIC
 # MAGIC      Author:    Bennie Haelen
 # MAGIC      Date:      12-10-2022
 # MAGIC      Purpose:   The notebooks in this folder contains the code for chapter 4 of the book - Basic Operations on Delta Tables.
 # MAGIC                 This notebook performs a MERGE operation and shows the impact on the part files and the details of what
 # MAGIC                 is recorded in the transaction log.
-# MAGIC 
+# MAGIC
 # MAGIC                 
 # MAGIC      The following actions are taken in this notebook:
 # MAGIC        1 - ...
-# MAGIC 
+# MAGIC
 # MAGIC    
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC USE CATALOG hive_metastore;
 
 # COMMAND ----------
 
@@ -48,7 +53,7 @@ from pyspark.sql.functions import col
 # MAGIC FROM
 # MAGIC     taxidb.yellowtaxis
 # MAGIC WHERE 
-# MAGIC     rideId = 100000
+# MAGIC     RideId = 100000
 
 # COMMAND ----------
 
@@ -68,12 +73,22 @@ print(yellowTaxiSchema)
 
 # COMMAND ----------
 
+df = spark.read.option("header", True).csv("/FileStore/tables/data/YellowTaxisMergeData.csv")
+display(df)
+
+# COMMAND ----------
+
+df = spark.read.option("header", True).csv("/mnt/datalake/book/chapter04/YellowTaxisMergeData.csv")
+display(df)
+
+# COMMAND ----------
+
 yellowTaxisMergeDataFrame = spark      \
             .read                      \
             .option("header", "true")  \
-            .schema(yellowTaxiSchema)  \
             .csv("/mnt/datalake/book/chapter04/YellowTaxisMergeData.csv") \
             .sort(col("RideId"))
+            
 
 display(yellowTaxisMergeDataFrame)                            
 
@@ -108,7 +123,7 @@ yellowTaxisMergeDataFrame.createOrReplaceTempView("YellowTaxiMergeData")
 # MAGIC MERGE INTO taxidb.YellowTaxis target
 # MAGIC     USING YellowTaxiMergeData source
 # MAGIC         ON target.RideId = source.RideId
-# MAGIC 
+# MAGIC
 # MAGIC -- We need to update the VendorId if the records
 # MAGIC -- matched
 # MAGIC WHEN MATCHED                                       
@@ -192,5 +207,11 @@ yellowTaxisMergeDataFrame.createOrReplaceTempView("YellowTaxiMergeData")
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC ls -al /dbfs/mnt/datalake/book/chapter04/YellowTaxisDelta/*.parquet
+log_files = dbutils.fs.ls("/mnt/datalake/book/chapter04/YellowTaxisDelta/")
+for file_info in log_files:
+    if file_info.path.endswith('.parquet'):
+        print(file_info.path)
+
+# COMMAND ----------
+
+

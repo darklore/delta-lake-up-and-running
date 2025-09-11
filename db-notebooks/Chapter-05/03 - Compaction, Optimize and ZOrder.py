@@ -23,6 +23,11 @@
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC USE CATALOG hive_metastore;
+
+# COMMAND ----------
+
 # MAGIC %md 
 # MAGIC ###Step 1 - Demonstrate compaction using repartition
 
@@ -30,20 +35,20 @@
 
 # DBTITLE 1,Compact the existing Delta table
 # define the path and number of files to repartition
-delta_table_path = "/mnt/datalake/book/chapter05/YellowTaxisDelta"
+path = "/mnt/datalake/book/chapter05/YellowTaxisDelta"
 numberOfFiles = 5
 
 
 # read the delta table and repartition it
 spark.read                      \
  .format("delta")               \
- .load(delta_table_path)        \
+ .load(path)                    \
  .repartition(numberOfFiles)    \
  .write                         \
  .option("dataChange", "false") \
  .format("delta")               \
  .mode("overwrite")             \
- .save(delta_table_path)
+ .save(path)
 
 # COMMAND ----------
 
@@ -52,16 +57,17 @@ spark.read                      \
 
 # COMMAND ----------
 
-# define the number of files to repartition
+# define the path and number of files to repartition
+path = "/mnt/datalake/book/chapter05/YellowTaxisDelta"
 numberOfFiles = 1000
 
 # read the delta table and repartition it
-spark.read.format("delta").load(delta_table_path).repartition(numberOfFiles)    \
- .write                                                                         \
- .option("dataChange", "false")                                                 \
- .format("delta")                                                               \
- .mode("overwrite")                                                             \
- .save(delta_table_path)
+spark.read.format("delta").load(path).repartition(numberOfFiles)    \
+ .write                                                             \
+ .option("dataChange", "false")                                     \
+ .format("delta")                                                   \
+ .mode("overwrite")                                                 \
+ .save(path)
 
 # COMMAND ----------
 
@@ -121,7 +127,8 @@ spark.read.format("delta").load(delta_table_path).repartition(numberOfFiles)    
 # COMMAND ----------
 
 # DBTITLE 1,Repartition the table
-# define the number of files to repartition
+# define the path and number of files to repartition
+path = "/mnt/datalake/book/chapter05/YellowTaxisDelta"
 numberOfFiles = 1000
 
 # read the delta table and repartition it
@@ -145,7 +152,7 @@ spark.read.format("delta").load(path).repartition(numberOfFiles)    \
 # MAGIC -- take note how long it takes to return results
 # MAGIC SELECT
 # MAGIC   COUNT(*) as count,
-# MAGIC   SUM(total_amount) as totalAmount,
+# MAGIC   SUM(TotalAmount) as totalAmount,
 # MAGIC   PickupDate
 # MAGIC FROM
 # MAGIC   taxidb.tripData
@@ -172,13 +179,18 @@ spark.read.format("delta").load(path).repartition(numberOfFiles)    \
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC SELECT * FROM taxidb.tripData
+
+# COMMAND ----------
+
 # DBTITLE 1,Execute baseline query again
 # MAGIC %sql
 # MAGIC -- baseline query
 # MAGIC -- after optimizing the table, note the decrease in time it took to return results compared to query run before
 # MAGIC SELECT
 # MAGIC   count(*) as count,
-# MAGIC   sum(total_amount) as totalAmount,
+# MAGIC   sum(TotalAmount) as totalAmount,
 # MAGIC   PickupDate
 # MAGIC FROM
 # MAGIC   taxidb.tripData
@@ -186,3 +198,7 @@ spark.read.format("delta").load(path).repartition(numberOfFiles)    \
 # MAGIC   PickupDate BETWEEN '2022-01-01' AND '2022-03-31'
 # MAGIC GROUP BY
 # MAGIC   PickupDate
+
+# COMMAND ----------
+
+

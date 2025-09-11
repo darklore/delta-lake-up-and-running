@@ -13,9 +13,15 @@
 # MAGIC                 
 # MAGIC     The following actions are taken in this notebook:
 # MAGIC      1 - Drop the taxidb database with a cascade, deleting all tables in the database
-# MAGIC      2 - Read the parquet files, and write the table in Delta Format
-# MAGIC      3 - Create database and register the delta table in hive
+# MAGIC      2 - Copy the YellowTaxisParquet files from DataFiles to the chapter05 directory
+# MAGIC      3 - Read the parquet files, and write the table in Delta Format
+# MAGIC      4 - Create database and register the delta table in hive
 # MAGIC    
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC USE CATALOG hive_metastore;
 
 # COMMAND ----------
 
@@ -31,31 +37,43 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###2 - Read the parquet files, and write the table in Delta Format
+# MAGIC ###2 - Copy the YellowTaxisParquet files from DataFiles to the chapter05 directory
 
 # COMMAND ----------
 
-# DBTITLE 1,Read files from dropbox
-import pandas as pd
-import requests
-
-# define dropbox download url for chapter 05 source file
-dropbox_url = 'https://dl.dropboxusercontent.com/s/tgg5s887otj97li/yellow_tripdata_2022.parquet?dl=0'
-
-# read the parquet file from dropbox using pandas then convert to spark dataframe
-pandas_df = pd.read_parquet(dropbox_url)
-df = spark.createDataFrame(pandas_df)
+dbutils.fs.rm("/mnt/datalake/book/chapter05/YellowTaxisParquet", recurse=True)
 
 # COMMAND ----------
 
-# DBTITLE 1,Remove exsiting Delta table
-dbutils.fs.rm('/mnt/datalake/book/chapter05/YellowTaxisDelta', True)
+dbutils.fs.cp('/FileStore/tables/data/YellowTaxi','/mnt/datalake/book/chapter05/YellowTaxisParquet', recurse=True)
 
 # COMMAND ----------
 
-# DBTITLE 1,Write delta table
+# MAGIC %fs
+# MAGIC ls /mnt/datalake/book/chapter05/YellowTaxisParquet
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ###3 - Read the parquet files, and write the table in Delta Format
+
+# COMMAND ----------
+
+dbutils.fs.rm("/mnt/datalake/book/chapter05/YellowTaxisDelta", recurse=True)
+
+# COMMAND ----------
+
 from pyspark.sql.types import (StructType,StructField,StringType,IntegerType,TimestampType,DoubleType,LongType)
 from pyspark.sql.functions import (to_date, year, month, dayofmonth)
+
+# add date columns to dataframe
+df = spark.read.format("parquet").load("/mnt/datalake/book/chapter04/YellowTaxisParquet")
+df = (
+    df.withColumn("PickupDate", to_date("PickupTime"))
+    .withColumn("PickupYear", year('PickupTime'))
+    .withColumn("PickupMonth", month('PickupTime'))
+    .withColumn("PickupDay", dayofmonth('PickupTime'))
+)
 
 # define the path and how many partitions we want this file broken up into so we can demonstrate compaction
 path = "/mnt/datalake/book/chapter05/YellowTaxisDelta/"
@@ -67,17 +85,19 @@ df.repartition(numberOfFiles).write.format("delta").mode("overwrite").save(path)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###3 - Create database and register the delta table in hive
+# MAGIC ###4 - Create database and register the delta table in hive
 
 # COMMAND ----------
 
-# DBTITLE 1,Create database
 # MAGIC %sql
 # MAGIC CREATE DATABASE IF NOT EXISTS taxidb;
 
 # COMMAND ----------
 
-# DBTITLE 1,Register table metadata
 # MAGIC %sql
 # MAGIC CREATE TABLE IF NOT EXISTS taxidb.tripData
 # MAGIC USING DELTA LOCATION '/mnt/datalake/book/chapter05/YellowTaxisDelta';
+
+# COMMAND ----------
+
+

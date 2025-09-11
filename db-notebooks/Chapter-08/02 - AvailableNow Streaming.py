@@ -22,6 +22,11 @@
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC USE CATALOG hive_metastore;
+
+# COMMAND ----------
+
 from pyspark.sql.functions import current_timestamp
 
 # COMMAND ----------
@@ -31,9 +36,8 @@ from pyspark.sql.functions import current_timestamp
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC # List the files in our source Delta Table
-# MAGIC ls -al /dbfs/mnt/datalake/book/chapter08/LimitedRecords.delta
+# MAGIC %fs
+# MAGIC ls /mnt/datalake/book/chapter08/LimitedRecords.delta
 
 # COMMAND ----------
 
@@ -157,23 +161,25 @@ streamQuery =                                                         \
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC ls /dbfs/mnt/datalake/book/chapter08/StreamingTarget/_delta_log/*.json
+log_files = dbutils.fs.ls("/mnt/datalake/book/chapter08/StreamingTarget/_delta_log/")
+for file_info in log_files:
+    if file_info.path.endswith('.json'):
+        print(file_info.path)
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC cat  /dbfs/mnt/datalake/book/chapter08/StreamingTarget/_delta_log/00000000000000000003.json
+# MAGIC %fs
+# MAGIC head  /mnt/datalake/book/chapter08/StreamingTarget/_delta_log/00000000000000000003.json
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC describe history delta.`/mnt/datalake/book/chapter08/LimitedRecords.delta`
+# MAGIC DESCRIBE HISTORY delta.`/mnt/datalake/book/chapter08/LimitedRecords.delta`
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC ls -al /dbfs/mnt/datalake/book/chapter08/StreamingTarget
+# MAGIC %fs
+# MAGIC ls /mnt/datalake/book/chapter08/StreamingTarget
 
 # COMMAND ----------
 
@@ -215,13 +221,9 @@ print(streamQuery.recentProgress[0]["numInputRows"])
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from taxidb.limitedyellowtaxis;
+# MAGIC SELECT * FROM taxidb.limitedyellowtaxis;
 # MAGIC
 
 # COMMAND ----------
 
 display(dbutils.fs.mounts())
-
-# COMMAND ----------
-
-

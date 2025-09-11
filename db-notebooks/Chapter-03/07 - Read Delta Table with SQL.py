@@ -23,32 +23,36 @@
 # COMMAND ----------
 
 # MAGIC %sql
+# MAGIC USE CATALOG hive_metastore;
+
+# COMMAND ----------
+
+# MAGIC %sql
 # MAGIC DROP TABLE IF EXISTS taxidb.YellowTaxis;
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###1 - Create a Delta Table on top of a Delta File
+# MAGIC ###1 - デルタ ファイル上にデルタ テーブルを作成する
 
 # COMMAND ----------
 
-# MAGIC %sh
-# MAGIC # This is our Delta file created by the "00 - Chapter Initialization" notebook
-# MAGIC ls -al /dbfs/mnt/datalake/book/chapter03/YellowTaxisDelta/
+# MAGIC %fs
+# MAGIC ls /mnt/datalake/book/chapter03/YellowTaxis.delta/
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC -- Syntax to create a Delta Table on top of an existing
-# MAGIC -- Delta File
+# MAGIC -- 既存のデルタ ファイル上にデルタ テーブルを作成する構文
 # MAGIC CREATE TABLE taxidb.YellowTaxis
 # MAGIC USING DELTA
 # MAGIC LOCATION "/mnt/datalake/book/chapter03/YellowTaxisDelta/"
+# MAGIC
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###2- Quick record count with SQL
+# MAGIC ###2 - SQL によるクイック レコード カウント
 
 # COMMAND ----------
 
@@ -61,7 +65,7 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###3 - Perform a DESCRIBE FORMATTED of the table
+# MAGIC ###3 - テーブルの DESCRIBE FORMATTED を実行する
 
 # COMMAND ----------
 
@@ -71,12 +75,12 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###4 - Illustrate the use of ANSI SQL in a more advanced query
+# MAGIC ###4 - より高度なクエリでの ANSI SQL の使用法を示す
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC -- Demonstrate the Spark SQL supports ANSI-SQL constructs
+# MAGIC -- Spark SQL が ANSI-SQL 構造をサポートしていることを実証する
 # MAGIC SELECT 
 # MAGIC     CabNumber,
 # MAGIC     AVG(FareAmount) AS AverageFare
@@ -85,7 +89,7 @@
 # MAGIC GROUP BY
 # MAGIC     CabNumber
 # MAGIC HAVING
-# MAGIC      AVG(FareAmount) > 50
+# MAGIC        AVG(FareAmount)>50
 # MAGIC ORDER BY
 # MAGIC     2 DESC
 # MAGIC LIMIT 5
@@ -93,7 +97,7 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###5 - Demonstrate the use of spark.sql in Python
+# MAGIC ###5 - Python での spark.sql の使用法を示す
 
 # COMMAND ----------
 
@@ -115,3 +119,7 @@ LIMIT {number_of_results}"""
 
 df = spark.sql(sql_statement)
 display(df)
+
+# COMMAND ----------
+
+
